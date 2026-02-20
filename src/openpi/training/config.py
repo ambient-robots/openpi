@@ -1020,6 +1020,34 @@ _CONFIGS = [
     # RoboArena & PolaRiS configs.
     *roboarena_config.get_roboarena_configs(),
     *polaris_config.get_polaris_configs(),
+    TrainConfig(
+        name="pi05_xlerobot_pro_finetune",
+        model=pi0_config.Pi0Config(
+            pi05=True,
+            action_dim=32,
+            action_horizon=50,
+        ),
+        data=LeRobotXLerobotProDataConfig(
+            repo_id="ambient-robots/take-part-lego-build-teleop-combined",
+            base_config=DataConfig(prompt_from_task=True),
+            use_delta_transform=True,
+        ),
+        batch_size=32,
+        lr_schedule=_optimizer.CosineDecaySchedule(
+            warmup_steps=1_000,
+            peak_lr=2.5e-5,
+            decay_steps=200_000,
+            decay_lr=2.5e-6,
+        ),
+        optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
+        ema_decay=0.999,
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
+        save_interval=5000,
+        keep_period=10_000,
+        num_train_steps=30_000,
+        num_workers=12,
+        wandb_enabled=True,
+    ),
 ]
 
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
