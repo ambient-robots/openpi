@@ -19,9 +19,9 @@ def _parse_image(image) -> np.ndarray:
 
 
 @dataclasses.dataclass(frozen=True)
-class XLerobotProInputs(transforms.DataTransformFn):
+class XLerobotPincInputs(transforms.DataTransformFn):
     """
-    Map one XLerobot Pro sample to OpenPI's internal model-input format.
+    Map one XLerobot Pinc sample to OpenPI's internal model-input format.
 
     Expected dataset keys after repack:
       - "state": np.ndarray shape [14] =
@@ -69,12 +69,12 @@ class XLerobotProInputs(transforms.DataTransformFn):
 
 
 @dataclasses.dataclass(frozen=True)
-class XLerobotProOutputs(transforms.DataTransformFn):
+class XLerobotPincOutputs(transforms.DataTransformFn):
     """
     Map model outputs back into robot action format.
 
     The model outputs 'actions' with shape [action_horizon, action_dim].
-    XLerobot Pro uses 14 action dims:
+    XLerobot Pinc uses 14 action dims:
     [left_arm(6 joints + 1 gripper), right_arm(6 joints + 1 gripper)].
     Only the first 14 dims are returned.
     """

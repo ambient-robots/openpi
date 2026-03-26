@@ -20,7 +20,7 @@ import openpi.models.tokenizer as _tokenizer
 import openpi.policies.aloha_policy as aloha_policy
 import openpi.policies.droid_policy as droid_policy
 import openpi.policies.libero_policy as libero_policy
-import openpi.policies.xlerobot_pro_policy as xlerobot_pro_policy
+import openpi.policies.xlerobot_pinc_policy as xlerobot_pinc_policy
 import openpi.shared.download as _download
 import openpi.shared.normalize as _normalize
 import openpi.training.droid_rlds_dataset as droid_rlds_dataset
@@ -463,7 +463,7 @@ class LeRobotDROIDDataConfig(DataConfigFactory):
         )
 
 @dataclasses.dataclass(frozen=True)
-class LeRobotXLerobotProDataConfig(DataConfigFactory):
+class LeRobotXLerobotPincDataConfig(DataConfigFactory):
     # If True, convert arm joint dimensions to deltas before normalization/model input.
     # Gripper dimensions remain absolute.
     # State/action layout is 14D:
@@ -491,8 +491,8 @@ class LeRobotXLerobotProDataConfig(DataConfigFactory):
         )
 
         data_transforms = _transforms.Group(
-            inputs=[xlerobot_pro_policy.XLerobotProInputs(model_type=model_config.model_type)],
-            outputs=[xlerobot_pro_policy.XLerobotProOutputs()],
+            inputs=[xlerobot_pinc_policy.XLerobotPincInputs(model_type=model_config.model_type)],
+            outputs=[xlerobot_pinc_policy.XLerobotPincOutputs()],
         )
 
         if self.use_delta_transform:
@@ -1021,30 +1021,30 @@ _CONFIGS = [
     *roboarena_config.get_roboarena_configs(),
     *polaris_config.get_polaris_configs(),
     TrainConfig(
-        name="pi05_xlerobot_pro_finetune",
+        name="pi05_xlerobot_pinc_finetune",
         model=pi0_config.Pi0Config(
             pi05=True,
             action_dim=32,
             action_horizon=50,
         ),
-        data=LeRobotXLerobotProDataConfig(
-            repo_id="ambient-robots/take-part-lego-build-teleop-combined",
+        data=LeRobotXLerobotPincDataConfig(
+            repo_id="ambient-robots/take-part-lego-build-teleop",
             base_config=DataConfig(prompt_from_task=True),
             use_delta_transform=True,
         ),
-        batch_size=32,
+        batch_size=64,
         lr_schedule=_optimizer.CosineDecaySchedule(
             warmup_steps=1_000,
-            peak_lr=2.5e-5,
-            decay_steps=200_000,
-            decay_lr=2.5e-6,
+            peak_lr=2e-5,
+            decay_steps=500_000,
+            decay_lr=2e-5,
         ),
         optimizer=_optimizer.AdamW(clip_gradient_norm=1.0),
         ema_decay=0.999,
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
-        save_interval=5000,
-        keep_period=10_000,
-        num_train_steps=30_000,
+        save_interval=50_000,
+        keep_period=50_000,
+        num_train_steps=50_001,
         num_workers=12,
         wandb_enabled=True,
     ),
